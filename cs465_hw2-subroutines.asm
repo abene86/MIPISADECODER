@@ -38,9 +38,43 @@
 		
 .globl atoi
 atoi:
-
-	#prepare return
-	#call report() to update status
+	li $t0, 0              # set the index to 0 for do while loop
+	li $t5, 0              # set sum to 0 for integer calcualtion
+	li $s4, 7		       # set value power of the highest order bit for 16^? calculation
+	li $s1, '/'		       # set the immediate value of $s1 to represent '/' which comes before '0'
+	li $t3, ':'		       # set the immediate value of $t3 to represent ':' which comes after '9'
+	li $a1, 9
+	la $t1, 0($a0)		       # load the base address our input of hex value into $t1
+	sub $a1, $a1, 1 
+    do_while:  			      
+    add $t2, $t1, $t0	       # we add $t0 which is our index to our base address
+    lb $t4, 0($t2)		       	# we then lb to load byte character into $s0 
+	slt $t6, $s1, $t4             # we check if the value of $s0 is greater than $s1('/')which is ascii value interm of integer as 47
+	slt $t7, $t4, $t3	       # we check if the value of $s0 is less than $t3 (':') which is ascii value interm of integer as 58
+	beq $t6, $0, checkoption2     # if  slt yield zero we do our secound check from A to F
+	beq $t7, $0, checkoption2     # if  slt yield zero we do our secound check from A to F
+	sub $t4, $t4, 48	       # after it passes the check, we subtract 48 to get the actual integer value
+	mul  $s5, $s4, 4		# we know based on the multiplicative property we can have 2^(4*2) to represent 16^2 so here we mulitply 4* the value of $s4
+	sllv $t4,$t4, $s5		# we then do left shift by variable to do the actual integervalue*2^(value *4)
+	add $t5, $t5, $t4		# we then add to sum+=value
+	j Incr			       # we jump to incr 
+    checkoption2:	
+    sub $s0, $s0, 55
+    mul  $s5, $s4, 4		# we know based on the multiplicative property  of powers we can have 2^(4*2) to represent 16^2
+	sllv $t4,$t4, $s5	        # we are going to use the multipied power to use for shifting to the left
+	add $t5, $t5, $t4
+    Incr:
+    add $t0, $t0, 1 	  # index++
+    sub  $s4, $s4,1		  # subtract one from $s4 which hold the highest power 16^? value
+	slt  $s6, $t0, $a1       # index < 9 jump while
+	bne  $s6, $0, do_while
+	addi $sp, $sp, -4
+	sw  $ra, 0($sp)
+	li $a0, 1
+	jal report
+	lw  $ra, 0($sp)
+	add $sp, $sp, 4
+	move $v0, $t5
 	jr $ra
 
 
@@ -56,12 +90,54 @@ atoi:
 	
 .globl get_type
 get_type:
+	add $t1, $0, 0xFFFFFFFF
+	add $t4, $0, 0x0000003F
+	add $t5, $0, 0x20
+	add $t6, $0, 0x24
+	add $t7, $0, 0x2a
+	and $t3, $a0, $t1
+	srl $t2, $a0, 26
+	bne $t2, $zero, check2
+	and $t3, $t3, $t4
+	beq $t3, $t5, setup
+	beq $t3, $t6, setup
+	beq $t3, $t7, setup
+	li $v0, 0xFFFFFFFF
+	j ret
+	check2:
+	li $t4, 0x23
+	li $t5,	0x04
+	li $t6, 0x08
+	li $t7, 0x2b
+	beq $t2, $t4, setup2
+	beq $t2, $t5, setup2
+	beq $t2, $t6, setup2
+	beq $t2, $t7, setup2
 
-	#prepare return
-	#call report() to update status
+	check3:
+	li $t4, 0x02
+	beq $t4, $t2, setup3
+	li $v0 0xFFFFFFFF
+	j ret
+	setup:
+	li $v0, 0
+	j ret
+	setup2:
+	li $v0, 1
+	j ret
+	setup3:
+	li $v0, 2
+	j ret
+	ret:
+	li $a0, 2
+	addi $sp, $sp -8
+	sw $v0, 4($sp)
+	sw $ra, 0($sp)
+	jal report
+	lw $v0,  4($sp)
+	lw  $ra, 0($sp)
+	add $sp, $sp, 8
 	jr $ra
-
-
 
 #############################################################
 # get_dest_reg

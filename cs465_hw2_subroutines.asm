@@ -86,6 +86,11 @@ atoi:
 # DESCRIPTION  
 #
 # PUT YOUR ALGORITHM DESCRIPTION HERE
+# It takes the unsigned int, make a copy and extract the opcode
+# If it is I or J type we just check to make sure it matches our valid list of opcodes
+# For R we extract the function to again check if it is from the allowed list
+# If either it is not a valid opcode or R case a valid function, we return 0xFFFFFFFF
+# else 0 for R,  1 I,  and J 2 type
 #############################################################
 
 	
@@ -151,6 +156,8 @@ get_type:
 	
 .globl get_dest_reg
 get_dest_reg:
+	li $t2, 0xFFFFFFFF
+	and $t2, $t2, $a0
 	srl $t1,$a0,26		# shift right logical 26 bits to get value for the opcode
 	beq $t1,$0, r_type	# if opcode == 0, goto r_type
 	li $t3,0x2		# $t3 = 2
@@ -158,6 +165,8 @@ get_dest_reg:
 	li $t3,0x08		# opcode == 8
 	beq $t1,$t3,rt		# $t1 == $t3, goto rt
 	li $t3,0x23		
+	beq $t1,$t3,no_reg 	# $t1 == $t3, goto no_reg
+	li $t3,0x04		
 	beq $t1,$t3,no_reg 	# $t1 == $t3, goto no_reg
 	li $t3,0x24
 	beq $t1,$t3,no_reg 	# $t1 == $t3, goto no_reg

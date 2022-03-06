@@ -67,11 +67,11 @@ main:
 	syscall # read in one string of 8 chars and store in INPUT
 		
 ######### Step 1: atoi ##########
-	#call atoi 
+	# call atoi 
 	la $a0, INPUT
 	jal atoi
 
-	#grab return, save returned machine code	
+	# grab return, save returned machine code	
 	add $s0, $v0, $0
 
 	# print out return of atoi (as hex)
